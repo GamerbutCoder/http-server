@@ -15,6 +15,7 @@
 #include "../includes/headers.h"
 #endif
 
+//MARK: freeResponse
 void freeResponse(Response *res)
 {
     if (res->message != NULL)
@@ -53,7 +54,7 @@ void freeResponse(Response *res)
     //     res->content_length = NULL;
     // }
 }
-
+//MARK: getContentType
 char *get_content_type(char *format)
 {
     char *content_type = (char *)calloc(20, sizeof(char));
@@ -90,6 +91,7 @@ char *get_content_type(char *format)
     return content_type;
 }
 
+//MARK: getFileFormat
 char *get_file_format(char *path)
 {
     char *format = (char *)calloc(5, sizeof(char));
@@ -126,6 +128,7 @@ char *get_file_format(char *path)
     return format;
 }
 
+//MARK: findFileSize
 /*
 if path exists return its file size
 */
@@ -143,7 +146,7 @@ long int find_file_size(char *path)
         return -1;
     }
 }
-
+//MARK: writeFileToBody
 void write_file_contents_to_body(char *body, char *path)
 {
 
@@ -156,10 +159,12 @@ void write_file_contents_to_body(char *body, char *path)
         {
             strncat(body, b, n);
         }
+        free(b);
         fclose(f);
     }
 }
 
+//MARK: arrangeResponse
 char *arrange_response(Response *res)
 {
 
@@ -240,12 +245,14 @@ char *arrange_response(Response *res)
     return final_response_body;
 }
 
+//MARK: printResponse
 void print_response(Response *res)
 {
-    printf("Response\n\tMethod :: %d\n\tStatus Code :: %d\n\tMessage :: %s\n\tProtocol :: %s\n\tPath :: %s\n\tFile Size/Content Length :: %ld\n\tFile Format :: %s\n\tContent Type :: %s\n\t\n",
-           res->method, res->status_code, res->message, res->protocol, res->path, res->file_size, res->file_format, res->content_type);
+    printf("Response\n\tMethod :: %d\n\tStatus Code :: %d\n\tMessage :: %s\n\tProtocol :: %s\n\tPath :: %s\n\tFile Size/Content Length :: %ld\n\tFile Format :: %s\n\tContent Type :: %s\n\tBody :: \n-------------------\n%s\n-------------------\n",
+           res->method, res->status_code, res->message, res->protocol, res->path, res->file_size, res->file_format, res->content_type, res->body);
 }
 
+//MARK: handleResponse
 Response handle_response(Request *req)
 {
     // printf("called handle reponse\n");
@@ -303,6 +310,13 @@ Response handle_response(Request *req)
 
     res.content_length = res.file_size;
 
+    res.body = (char *) calloc((res.content_length + 10), sizeof(char));
+
+    write_file_contents_to_body(res.body, res.path);
+
+    // printf("body ends with null %d %d %d\n", res.body[res.content_length-2], res.body[res.content_length-1], res.body[res.content_length]);
+
     print_response(&res);
+
     return res;
 }

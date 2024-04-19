@@ -23,6 +23,7 @@
 #define MAX_REQ_QUEUE_SIZE 10
 #define MAX_REQ_SIZE 1024
 #define DEFAULT_PROTOCOL "http"
+#define MAX_RES_SIZE (1024 * 2)
 
 
 void accept_incoming_request(int socket, struct sockaddr_in *address, socklen_t len)
@@ -45,7 +46,7 @@ void accept_incoming_request(int socket, struct sockaddr_in *address, socklen_t 
 
         Response res = handle_response(&req);
 
-        // char *response = arrange_response(&res);
+        char response[MAX_RES_SIZE] = {'\0'};
 
         // // free(buffer);
 
