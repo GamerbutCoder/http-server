@@ -118,9 +118,9 @@ Request parse_first_line(char *line, size_t len)
                 req.protocol = (char *)malloc(sizeof(char) * (index + 1));
                 strncpy(req.protocol, word, index);
                 req.protocol[index] = '\0';
-                req.is_valid = (req.is_valid && 1);
                 break;
             default:
+                req.is_valid = (req.is_valid && 0);
                 break;
             }
             nth_space++;
