@@ -50,18 +50,12 @@ void accept_incoming_request(int socket, struct sockaddr_in *address, socklen_t 
 
         write_in_html_format(&res, response);
 
-
         freeRequest(&req);
 
         freeResponse(&res);
 
-
         send(accept_fd, response, strlen(response), 0);
         
-
-        // free(response);
-        // response = NULL;
-
         close(accept_fd);
     }
 
