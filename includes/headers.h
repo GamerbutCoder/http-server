@@ -1,0 +1,6 @@
+#define _CONTENT_TYPE "Content-Type: "
+#define _CONTENT_LENGTH "Content-Length: "
+#define _BAD_REQUEST "Bad request"
+#define _OK "OK"
+#define _NOT_FOUND "Not found"
+#define _TEXT_HTML "text/html"

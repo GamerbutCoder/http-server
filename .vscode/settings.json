@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "request.h": "c",
+        "response.h": "c",
+        "method.h": "c",
+        "socket.h": "c",
+        "headers.h": "c",
+        "in.h": "c",
+        "unistd.h": "c",
+        "stdio.h": "c",
+        "string.h": "c"
+    }
+}
