@@ -41,27 +41,27 @@ void accept_incoming_request(int socket, struct sockaddr_in *address, socklen_t 
 
         buffer[recvd_bytes] = '\0';
 
-        Request req = parse_http_req(buffer, strlen(buffer));
+        Request req = parse_http_req(buffer, recvd_bytes);
 
         Response res = handle_response(&req);
 
-        char *response = arrange_response(&res);
+        // char *response = arrange_response(&res);
 
-        // free(buffer);
+        // // free(buffer);
 
-        // buffer = NULL;
+        // // buffer = NULL;
 
         freeRequest(&req);
 
         freeResponse(&res);
 
-        printf("Sending this response back with len: %ld\n %s\n", strlen(response), response);
+        // printf("Sending this response back with len: %ld\n %s\n", strlen(response), response);
 
-        send(accept_fd, response, strlen(response), 0);
+        send(accept_fd, "response", strlen("response"), 0);
         
 
-        free(response);
-        response = NULL;
+        // free(response);
+        // response = NULL;
 
         close(accept_fd);
     }

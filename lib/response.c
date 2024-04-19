@@ -42,6 +42,11 @@ void freeResponse(Response *res)
         free(res->body);
         res->body = NULL;
     }
+    if (res->file_format != NULL)
+    {
+        free(res->file_format);
+        res->file_format = NULL;
+    }
 
     // if(res->content_length != NULL){
     //     free(res->content_length);
@@ -49,18 +54,76 @@ void freeResponse(Response *res)
     // }
 }
 
-int valid_file_format(char *path)
+char *get_content_type(char *format)
 {
-    // printf("valid_file_format: %s\n", path);
+    char *content_type = (char *)calloc(20, sizeof(char));
+
+    if (!strcmp(format, _HTML))
+    {
+        strcpy(content_type, _TEXT_HTML);
+    }
+    else if (!strcmp(format, _CSS))
+    {
+        strcpy(content_type, _TEXT_CSS);
+    }
+    else if (!strcmp(format, _JS))
+    {
+        strcpy(content_type, _TEXT_JS);
+    }
+    else if (!strcmp(format, _PNG))
+    {
+        strcpy(content_type, _IMAGE_PNG);
+    }
+    else if (!strcmp(format, _JPEG))
+    {
+        strcpy(content_type, _IMAGE_JPEG);
+    }
+    else if (!strcmp(format, _GIF))
+    {
+        strcpy(content_type, _IMAGE_GIF);
+    }
+    else if (!strcmp(format, _ICO))
+    {
+        strcpy(content_type, _IMAGE_X_ICON);
+    }
+
+    return content_type;
+}
+
+char *get_file_format(char *path)
+{
+    char *format = (char *)calloc(5, sizeof(char));
     int n = strlen(path);
-    if (n >= 6 && (path[n - 5] == '.') && (path[n - 4] == 'h') && (path[n - 3] == 't' && ((path[n - 2] == 'm') && (path[n - 1] == 'l'))))
+    if (n >= 6 && (path[n - 5] == '.') && (path[n - 4] == 'h') && (path[n - 3] == 't') && (path[n - 2] == 'm') && (path[n - 1] == 'l'))
     {
-        return 0;
+        strcpy(format, _HTML);
     }
-    else
+    else if (n >= 6 && (path[n - 5] == '.') && (path[n - 4] == 'j') && (path[n - 3] == 'p') && (path[n - 2] == 'e') && (path[n - 1] == 'g'))
     {
-        return -1;
+        strcpy(format, _JPEG);
     }
+    else if (n >= 5 && ((path[n - 4] == '.') && (path[n - 3] == 'i') && (path[n - 2] == 'c') && (path[n - 1] == 'o')))
+    {
+        strcpy(format, _ICO);
+    }
+    else if (n >= 5 && ((path[n - 4] == '.') && (path[n - 3] == 'p') && (path[n - 2] == 'n') && (path[n - 1] == 'g')))
+    {
+        strcpy(format, _PNG);
+    }
+    else if (n >= 5 && ((path[n - 4] == '.') && (path[n - 3] == 'c') && (path[n - 2] == 's') && (path[n - 1] == 's')))
+    {
+        strcpy(format, _CSS);
+    }
+    else if (n >= 5 && ((path[n - 4] == '.') && (path[n - 3] == 'g') && (path[n - 2] == 'i') && (path[n - 1] == 'f')))
+    {
+        strcpy(format, _GIF);
+    }
+    else if (n >= 4 && ((path[n - 3] == '.') && (path[n - 2] == 'j') && (path[n - 1] == 's')))
+    {
+        strcpy(format, _JS);
+    }
+
+    return format;
 }
 
 /*
@@ -177,83 +240,69 @@ char *arrange_response(Response *res)
     return final_response_body;
 }
 
+void print_response(Response *res)
+{
+    printf("Response\n\tMethod :: %d\n\tStatus Code :: %d\n\tMessage :: %s\n\tProtocol :: %s\n\tPath :: %s\n\tFile Size/Content Length :: %ld\n\tFile Format :: %s\n\tContent Type :: %s\n\t\n",
+           res->method, res->status_code, res->message, res->protocol, res->path, res->file_size, res->file_format, res->content_type);
+}
+
 Response handle_response(Request *req)
 {
-
+    // printf("called handle reponse\n");
     Response res;
 
     res.content_length = 0;
-    res.file_size = 0;
-    size_t req_protocol_len = strlen(req->protocol);
-    res.protocol = (char *)malloc(sizeof(char) * (req_protocol_len + 1));
-    res.content_type = (char *)malloc(sizeof(char) * (strlen(_TEXT_HTML) + 1));
-    strcpy(res.content_type, _TEXT_HTML);
-    char *path = (char *)malloc(sizeof(char) * (3 + strlen(req->path)));
     res.body = NULL;
+    res.content_type = NULL;
+    res.file_size = 0;
+    res.message = NULL;
+    res.path = NULL;
+    res.protocol = NULL;
+    res.status_code = 0;
+    res.file_format = NULL;
 
-    // printf("Res address: %p\n", res);
-
-    //// printf("bfr handle_req %d %s\n", req->method, req->path);
     res.method = req->method;
+
+    res.protocol = (char *)calloc(9, sizeof(char)); // HTTP/X.X\0 = 9 chars
     strcpy(res.protocol, req->protocol);
 
-    path[0] = '.';
-    path[1] = '\0';
-    // strncat(path, ".", 2);
-    strncat(path, req->path, (strlen(req->path) + 1));
-    // strncat(path, "\0", 2);
-    printf("checking path: %s\n", path);
-    res.path = path;
-
-    path = NULL;
-
-    if (valid_file_format(req->path) < 0)
+    if (req->is_valid)
     {
-        res.status_code = 400;
-        res.message = (char *)malloc(strlen((_BAD_REQUEST) + 1));
-        strcpy(res.message, _BAD_REQUEST);
-        return res;
-    }
-
-    long int file_size;
-
-    //// printf("aft2 handle_req %s %ld\n", res->path, res->method);
-
-    file_size = find_file_size(path);
-
-    // printf("checking if this path exists: %s %ld\n", path, file_size);
-
-    if (file_size < 0)
-    {
-        res.status_code = 404;
-        res.message = (char *)malloc(strlen((_NOT_FOUND) + 1));
-        strcpy(res.message, _NOT_FOUND);
-        // printf("path not found %s\n", res->message);
-        return res;
+        res.status_code = 200;
+        res.message = (char *)calloc((strlen(_OK) + 1), sizeof(char));
+        strcpy(res.message, _OK);
     }
     else
     {
-        // printf("path found with file size:  %ld\n", file_size);
-        // res->path = path;
-        // (char *)malloc((strlen(path)+1));
-        // strcpy(res->path, path);
+        res.message = (char *)calloc((strlen(_BAD_REQUEST) + 1), sizeof(char));
+        strcpy(res.message, _BAD_REQUEST);
+        res.status_code = 400;
+        print_response(&res);
+        return res;
     }
 
-    // free(path);
+    res.path = (char *)calloc((strlen(req->path) + 2), sizeof(char));
+    res.path[0] = '.';
+    res.path[1] = '\0';
+    strcat(res.path, req->path);
 
-    res.status_code = 200;
+    res.file_size = find_file_size(res.path);
+    // printf("res file path: %s\nfile_size: %ld\n", res.path, res.file_size);
+    if (res.file_size == -1)
+    {
+        res.message = (char *)calloc((strlen(_NOT_FOUND) + 1), sizeof(char));
+        strcpy(res.message, _NOT_FOUND);
+        res.status_code = 404;
+        print_response(&res);
+        return res;
+    }
 
-    res.message = (char *)malloc(strlen((_OK) + 1));
+    res.file_format = get_file_format(res.path);
 
-    strcpy(res.message, _OK);
+    res.content_type = get_content_type(res.file_format);
 
-    res.file_size = file_size;
+    res.content_length = res.file_size;
 
-    // res.body  = (char *)malloc(sizeof(char) * (res.file_size + (1024 * 10))); // // file size + 1000 bytes extra space for writing headers and stuff
-
-    // arrange_response(&res, res.body);
-
-    // printf("Response status: %d  message: %s \n", res->status_code, res->message);
-
+    print_response(&res);
     return res;
 }

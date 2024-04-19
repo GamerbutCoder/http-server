@@ -1,8 +1,7 @@
 #include <stddef.h>
 
-
 #ifndef REQUEST_HEADER_DEFINE__
-#define  REQUEST_HEADER_DEFINE__
+#define REQUEST_HEADER_DEFINE__
 #include "request.h"
 #endif // REQUEST_HEADER_DEFINE__
 
@@ -10,7 +9,6 @@
 #define METHOD_HEADER_DEFINE__
 #include "method.h"
 #endif // METHOD_HEADER_DEFINE__
-
 
 typedef struct Response
 {
@@ -23,10 +21,12 @@ typedef struct Response
     char *body;
     size_t content_length;
     long int file_size;
+    char *file_format;
+
 } Response;
 
 Response handle_response(Request *req);
 
-char* arrange_response(Response *res);
+char *arrange_response(Response *res);
 
 void freeResponse(Response *res);
