@@ -107,6 +107,12 @@ Request parse_first_line(char *line, size_t len)
                 req.path = (char *)malloc(sizeof(char) * (index + 1));
                 strncpy(req.path, word, index);
                 req.path[index] = '\0';
+
+                if(strcmp(req.path, "/") == 0) {
+                    free(req.path);
+                    req.path = (char *)malloc(sizeof(char) * (sizeof("/index.html")+1));
+                    strcpy(req.path, "/index.html");
+                }
                 break;
             case 2:
                 req.protocol = (char *)malloc(sizeof(char) * (index + 1));
