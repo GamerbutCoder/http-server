@@ -27,6 +27,6 @@ typedef struct Response
 
 Response handle_response(Request *req);
 
-char *arrange_response(Response *res);
+void write_in_html_format(Response *res, char *body);
 
 void freeResponse(Response *res);

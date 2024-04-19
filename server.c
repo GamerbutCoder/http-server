@@ -48,17 +48,15 @@ void accept_incoming_request(int socket, struct sockaddr_in *address, socklen_t 
 
         char response[MAX_RES_SIZE] = {'\0'};
 
-        // // free(buffer);
+        write_in_html_format(&res, response);
 
-        // // buffer = NULL;
 
         freeRequest(&req);
 
         freeResponse(&res);
 
-        // printf("Sending this response back with len: %ld\n %s\n", strlen(response), response);
 
-        send(accept_fd, "response", strlen("response"), 0);
+        send(accept_fd, response, strlen(response), 0);
         
 
         // free(response);
